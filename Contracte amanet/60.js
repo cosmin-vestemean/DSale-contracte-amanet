@@ -2664,7 +2664,7 @@ function prelungire_contract(showNext)
   TblFin.UTBL04=3100;
 
 	var id = myObj.DBPOST;
-	X.WARNING('New id is:' + id);
+	//X.WARNING('New id is:' + id);
 } catch (e) {
 	X.WARNING("Error: " + myObj.GETLASTERROR + " - " + e.message);
 }
