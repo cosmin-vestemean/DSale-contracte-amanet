@@ -570,3 +570,31 @@ function converBinToBase64(filePath) {
 	elem.nodeTypedValue = bytes;
 	return elem.text.replace(/[^A-Z\d+=\/]/gi, '');
 }
+
+/*
+var urlMtrls = 'https://dev.creditamanet.ro/Backend_controller/ping_for_items_s1',
+urlDocs = 'https://dev.creditamanet.ro/api/sendDocsOnEmail',
+tipartituraFac = 510,
+tipartituraGar = 301;
+
+function ON_AFTERPOST() {
+	if (SALDOC.FPRMS == 7000 || SALDOC.FPRMS == 7900) {
+		//debugger;
+		comm1(true);
+		X.PROCESSMESSAGES;
+	}
+
+	// Transmitere array articole pentru update stoc pe website
+	if (SALDOC.FPRMS == 7000 || SALDOC.FPRMS == 7900) {
+		var fin = SALDOC.FINDOC ? SALDOC.FINDOC : X.NEWID;
+		sendJson(fin, urlMtrls, 1);
+	}
+}
+
+function ON_AFTERDELETE() {
+if (SALDOC.FPRMS == 7000 || SALDOC.FPRMS == 7900) {
+	var fin = SALDOC.FINDOC ? SALDOC.FINDOC : X.NEWID;
+	sendJson(fin, urlMtrls, 1);
+}
+}
+*/
