@@ -1,0 +1,11 @@
+-linii comisioane:
+  -alegere grila agentie contract/extragere setari/valori
+  -comision normal (la zi)
+  -adaos comison (comision min) - calcul comision min
+  -comision intarziere (gratie)
+  -discounturi
+      -card fidelitate
+      -voucher
+      -promotii
+-linii articole amanetate
+  -distribuire proportionala cu val a platii-suma comisioane datorate
