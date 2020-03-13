@@ -1,7 +1,8 @@
+GRILA VALORI:
 -linii comisioane:
   -alegere grila agentie contract/extragere setari/valori
   -comision normal (la zi)
-  -adaos comison (comision min) - calcul comision min
+  -adaos comision (comision min) - calcul comision min
   -comision intarziere (gratie)
   -discounturi
       -card fidelitate
@@ -9,3 +10,14 @@
       -promotii
 -linii articole amanetate
   -distribuire proportionala cu val a platii-suma comisioane datorate
+
+GRILA VALORI > 9600 RETAIL
+INST DE INCHIS > INST PRELUNGIRE > Prelungit-activ > X.PRINTFORM PDF > B64 > push to site
+GRILA VALORI > INST DE INCHIS > Prelungit
+
+
+grila=f(inst)
+  -contr: CCCACOMM
+  -aa: ultima
+
+-recalculare comisioane in contract si preluare
