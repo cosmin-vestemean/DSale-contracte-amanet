@@ -253,9 +253,10 @@ function ON_DELETE()
 function EXECCOMMAND(cmd)
 {
   if (cmd == '20200313') {
-    a(false, 2);
-    b();
-    c(false);
+    a(false, 2);  //prelungire
+    b();  //show tabela calcule
+    //9600
+    c(false); //accept calcule
   }
 
 	if (cmd == '20190528')
@@ -575,6 +576,7 @@ function a(showNext, tipActiune) {
 
 		if (INST.CCCPAYTYPE == 2)
 		{
+      docID();
 		DsOP = X.GETSQLDATASET('select sum(llineval) as opval from trdtlines where inst='+vID+' and sosource=1413', null);
 		if (DsOP.opval > INST.CCCSUMAMNT || DsOP.opval == INST.CCCSUMAMNT)
 		X.EXCEPTION('Suma depaseste valoarea de incasat! Incercati: Lichidare');
@@ -828,7 +830,7 @@ function  c(showNext) {
   if (INST.UTBL05==100)
   {
   DsSeries = X.GETSQLDATASET('select top 1 cccseriesch from cccacomm where branch='+X.SYS.BRANCH+' order by fromdate desc',null);
-  ceSerie = DsSeries.cccser5iesch;
+  ceSerie = DsSeries.cccseriesch;
   X.EXEC('XCMD:RETAILDOC[AUTOEXEC=2,FORM=S1 - Amanet,FORCEVALUES=SERIES:'+ceSerie+'?TRDR:'+INST.TRDR+'?SALESMAN:'+INST.SALESMAN+'?BOOL01:1?INST:'+INST.INST+'?COMMENTS:]');
   }
 
@@ -2597,7 +2599,8 @@ function prelungire_contract(showNext)
 {
 
 	DsCond = X.GETSQLDATASET('select sum(isnull(price,0)-isnull(cccpaid,0)) as dif from instlines where sodtype=52 and inst='+vID,null);
-	cePrel = DsCond.dif;
+	//cePrel = DsCond.dif;
+	cePrel = 0;
 
 
 	// Conditie suplimentara: doar daca nu este deja generat alt act aditional
