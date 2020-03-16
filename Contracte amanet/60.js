@@ -253,10 +253,10 @@ function ON_DELETE()
 function EXECCOMMAND(cmd)
 {
   if (cmd == '20200313') {
-    a(false, 2);  //prelungire
-    b();  //show tabela calcule
-    //9600
-    c(false); //accept calcule
+    //abcd();
+    //debugger;
+    ab();
+    X.EXEC('button:Save');
   }
 
 	if (cmd == '20190528')
@@ -738,6 +738,7 @@ function b() {
 
 	CCCVPAYSUM.ITEAMNT = ceSumI;
 	CCCVPAYSUM.SRVAMNT = ceSumC + ceSumCI + ceSumCA;
+  INST.CCCCOMZI = CCCVPAYSUM.SRVAMNT;
 
 	if (INST.CCCPAYTYPE == 2 || INST.CCCPAYTYPE == 1)
 	CCCVPAYSUM.PAYAMNT = ceSumC + ceSumCI + ceSumCA;
@@ -4144,6 +4145,25 @@ function xx() {
 	})();
 }
 
+function  ON_INST_CCCGETCOM () {
+ if (INST.CCCGETCOM){
+   ab();
+   INST.CCCGETCOM = 0;
+ }
+}
+
+function ab() {
+  a(false, 2);  //prelungire
+  b();  //show tabela calcule
+}
+
+function abcd() {
+  a(false, 2);  //prelungire
+  b();  //show tabela calcule
+  //9600
+  c(false); //accept calcule
+}
+
 /*
 itsMe = false,
 urlDummy='https://dev.creditamanet.ro/api/test',
@@ -4167,6 +4187,6 @@ function ON_LOCATE() {
 
 }
 
-//ALTER TABLE INST ADD CCCDATAPLATABTN DATETIME, CCCSUMATRANSMISA FLOAT, CCCCOMNETOPIA FLOAT,
-  CCCGETCOM SMALLINT, CCCACTIUNE SMALLINT, CCCCOMZI FLOAT
+//ALTER TABLE INST ADD CCCDATAPLATABTN DATETIME null, CCCSUMATRANSMISA FLOAT null, CCCCOMNETOPIA FLOAT null,
+  CCCGETCOM SMALLINT null, CCCACTIUNE SMALLINT null, CCCCOMZI FLOAT null
 */
