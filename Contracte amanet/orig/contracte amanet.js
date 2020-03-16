@@ -3794,7 +3794,7 @@ function saveMe(printform) {
 		//X.WARNING(f1);
 		ObjSaldoc.DBLocate(vID);
 		ObjSaldoc.PRINTFORM(printform, 'PDF file', f1);   // Salvare fisier
-				
+
 		ret.succes = true;
 		ret.f1 = f1;
 		//ret.f2 = f2;
