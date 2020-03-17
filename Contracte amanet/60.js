@@ -110,6 +110,13 @@ function ON_POST()
 
 function ON_AFTERPOST()
 {
+  docID();
+
+  if (INST.CCCGETCOM){
+    ab();
+    X.RUNSQL('update INST set CCCGETCOM=0 where INST='+vID, null);
+  }
+
 		if (INST.UTBL04!=1100&&INST.UTBL04!=1200)
 		{
 		docID();
@@ -185,8 +192,11 @@ function ON_AFTERPOST()
 		// Tiparire automata
 		if (INST.CCCPRINT==0&&INST.UTBL04!=4000)
 		{
-		if (INST.UTBL04!=1100&&INST.UTBL04!=1200&&INST.UTBL04!=1300)
-		conditiiPrint();
+		if (INST.UTBL04!=1100&&INST.UTBL04!=1200&&INST.UTBL04!=1300) {
+        if (!INST.CCCGETCOM) {
+          conditiiPrint();
+        }
+      }
 		}
 
     itsMe = true;
@@ -254,9 +264,9 @@ function EXECCOMMAND(cmd)
 {
   if (cmd == '20200313') {
     //abcd();
-    //debugger;
+    debugger;
+    INST.CCCGETCOM = 1;
     ab();
-    X.EXEC('button:Save');
   }
 
 	if (cmd == '20190528')
@@ -510,7 +520,8 @@ function ON_SFVPAYTYPE_ACCEPT()
 
 function a(showNext, tipActiune) {
   INST.CCCPAYTYPE = tipActiune;
-	gridRO(INSTLINES,0);
+	if (showNext)
+    gridRO(INSTLINES,0);
 
 	//cePayType = 0;
 	cePayType = CCCVPAY.PAYTYPE;
@@ -595,7 +606,8 @@ function a(showNext, tipActiune) {
 		//cePayType = CCCVPAY.PAYTYPE;
 
 
-	gridRO(INSTLINES,1);
+	if (showNext)
+    gridRO(INSTLINES,1);
 
 	if (showNext)
     X.OPENSUBFORM('SFCCCVPAY');
@@ -738,7 +750,8 @@ function b() {
 
 	CCCVPAYSUM.ITEAMNT = ceSumI;
 	CCCVPAYSUM.SRVAMNT = ceSumC + ceSumCI + ceSumCA;
-  INST.CCCCOMZI = CCCVPAYSUM.SRVAMNT;
+  docID();
+  X.RUNSQL('update INST set CCCCOMZI = ' + CCCVPAYSUM.SRVAMNT + ' where INST =' + vID, null);
 
 	if (INST.CCCPAYTYPE == 2 || INST.CCCPAYTYPE == 1)
 	CCCVPAYSUM.PAYAMNT = ceSumC + ceSumCI + ceSumCA;
@@ -4143,13 +4156,6 @@ function xx() {
 			}
 		}
 	})();
-}
-
-function  ON_INST_CCCGETCOM () {
- if (INST.CCCGETCOM){
-   ab();
-   INST.CCCGETCOM = 0;
- }
 }
 
 function ab() {
