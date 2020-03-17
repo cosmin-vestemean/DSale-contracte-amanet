@@ -112,7 +112,7 @@ function ON_AFTERPOST()
 {
   docID();
 
-  if (INST.CCCGETCOM){
+  if (INST.CCCGETCOM && INST.CCCACTIUNE){
     ab();
     X.RUNSQL('update INST set CCCGETCOM=0 where INST='+vID, null);
   }
@@ -263,10 +263,10 @@ function ON_DELETE()
 function EXECCOMMAND(cmd)
 {
   if (cmd == '20200313') {
-    //abcd();
     debugger;
     INST.CCCGETCOM = 1;
-    ab();
+    INST.CCCACTIUNE = 2;
+    abcd();
   }
 
 	if (cmd == '20190528')
@@ -4159,12 +4159,12 @@ function xx() {
 }
 
 function ab() {
-  a(false, 2);  //prelungire
+  a(false, INST.CCCACTIUNE);  //prelungire
   b();  //show tabela calcule
 }
 
 function abcd() {
-  a(false, 2);  //prelungire
+  a(false, INST.CCCACTIUNE);  //2=Prelungire, 3=Lichidare
   b();  //show tabela calcule
   //9600
   c(false); //accept calcule
