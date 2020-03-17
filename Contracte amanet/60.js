@@ -2714,7 +2714,7 @@ function prelungire_contract(showNext)
   if (INST.INST) TblFin.CCCINSTS=INST.INST;
   TblFin.CCCCNTRTYPE=2;
   TblFin.UTBL04=3100;
-  debugger;
+  //debugger;
 	var id = myObj.DBPOST;
 	//X.WARNING('New id is:' + id);
 } catch (e) {
