@@ -125,6 +125,13 @@ function ON_AFTERPOST()
     }
   }
 
+  /*
+  //ca la buton
+  INST.CCCGETCOM = 2;
+  INST.CCCACTIUNE = 2;
+  ab();
+  */
+
 		if (INST.UTBL04!=1100&&INST.UTBL04!=1200)
 		{
 		docID();
