@@ -113,6 +113,7 @@ function ON_AFTERPOST()
 {
   docID();
 
+  /*
   if (INST.CCCGETCOM) {
     if (INST.CCCACTIUNE){
       if (INST.CCCGETCOM == 1) {
@@ -124,6 +125,7 @@ function ON_AFTERPOST()
       }
     }
   }
+  */
 
   /*
   //ca la buton
@@ -282,8 +284,22 @@ function EXECCOMMAND(cmd)
     debugger;
     INST.CCCGETCOM = 2;
     INST.CCCACTIUNE = 2;
+    /*
     ab();
+    */
     //abcd();
+
+    if (INST.CCCGETCOM) {
+      if (INST.CCCACTIUNE){
+        if (INST.CCCGETCOM == 1) {
+          if (!ab()) {
+            //ceva nu a mers bine, fa ceva cu aceasta info
+          }
+        } else if (INST.CCCGETCOM == 2) {
+          abcd();
+        }
+      }
+    }
   }
 
 	if (cmd == '20190528')
