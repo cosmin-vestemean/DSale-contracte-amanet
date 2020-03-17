@@ -112,8 +112,17 @@ function ON_AFTERPOST()
 {
   docID();
 
-  if (INST.CCCGETCOM && INST.CCCACTIUNE){
-    ab();
+  if (INST.CCCGETCOM) {
+    if (INST.CCCACTIUNE){
+      if (INST.CCCGETCOM == 1) {
+        if (!ab()) {
+          //ceva nu a mers bine, fa ceva cu aceasta info
+        }
+      } else if (INST.CCCGETCOM == 2) {
+        abcd();
+      }
+  }
+
     X.RUNSQL('update INST set CCCGETCOM=0 where INST='+vID, null);
   }
 
@@ -264,7 +273,7 @@ function EXECCOMMAND(cmd)
 {
   if (cmd == '20200313') {
     debugger;
-    INST.CCCGETCOM = 1;
+    INST.CCCGETCOM = 2;
     INST.CCCACTIUNE = 2;
     abcd();
   }
@@ -611,6 +620,8 @@ function a(showNext, tipActiune) {
 
 	if (showNext)
     X.OPENSUBFORM('SFCCCVPAY');
+
+  return true;
 }
 
 function ON_SFVPAYTYPE_CANCEL()
@@ -774,6 +785,8 @@ function b() {
 
 	CCCVPAYSUM.SUMAMNT = ceSum;
 	CCCVPAYSUM.DAYS = cateZile;
+
+  return true;
 }
 
 function ON_SFCCCVPAY_ACCEPT()
@@ -892,7 +905,8 @@ function  c(showNext) {
   INST.UTBL04 = 4000;
   }
 
-  gridRO(INSTLINES,1);
+  if (!showNext)
+    gridRO(INSTLINES,1);
   X.EXEC('button:Save');
 }
 
@@ -2657,23 +2671,23 @@ function prelungire_contract(showNext)
 	myObj.DBINSERT;
 	var TblFin = myObj.FindTable('INST');
 	TblFin.Edit;
-	TblFin.BRANCH = INST.BRANCH;
-	TblFin.INSTTYPE = INST.INSTTYPE;
-	TblFin.TRDR = INST.TRDR;
-	TblFin.CCCPRSN = cePrsn;
-	TblFin.CCCPRSN1 = cePrsn1;
-	TblFin.CCCPRSN2 = cePrsn2;
-	TblFin.UTBL01 = INST.UTBL01;
-	TblFin.CCCMTRGROUP=INST.CCCMTRGROUP;
-  TblFin.CCCBRATE=INST.CCCBRATE;
+	if (INST.BRANCH) TblFin.BRANCH = INST.BRANCH;
+	if (INST.INSTTYPE) TblFin.INSTTYPE = INST.INSTTYPE;
+	if (INST.TRDR) TblFin.TRDR = INST.TRDR;
+	if (cePrsn) TblFin.CCCPRSN = cePrsn;
+	if (cePrsn1) TblFin.CCCPRSN1 = cePrsn1;
+	if (cePrsn2) TblFin.CCCPRSN2 = cePrsn2;
+	if (INST.UTBL01) TblFin.UTBL01 = INST.UTBL01;
+	if (INST.CCCMTRGROUP) TblFin.CCCMTRGROUP=INST.CCCMTRGROUP;
+  if (INST.CCCBRATE) TblFin.CCCBRATE=INST.CCCBRATE;
   TblFin.BOOL01=1;
-  TblFin.BOOL04=INST.BOOL04;
-  TblFin.CCCCOMSPEC=INST.CCCCOMSPEC;
-  TblFin.CCCAPR1=INST.CCCAPR1;
-  TblFin.CCCAPR=INST.CCCAPR;
-  TblFin.CCCINST=INST.CCCINST;
+  if (INST.BOOL04) TblFin.BOOL04=INST.BOOL04;
+  if (INST.CCCCOMSPEC) TblFin.CCCCOMSPEC=INST.CCCCOMSPEC;
+  if (INST.CCCAPR1) TblFin.CCCAPR1=INST.CCCAPR1;
+  if (INST.CCCAPR) TblFin.CCCAPR=INST.CCCAPR;
+  if (INST.CCCINST) TblFin.CCCINST=INST.CCCINST;
   //debugger;
-  TblFin.CCCINSTS=INST.INST;
+  if (INST.INST) TblFin.CCCINSTS=INST.INST;
   TblFin.CCCCNTRTYPE=2;
   TblFin.UTBL04=3100;
 
@@ -4159,11 +4173,19 @@ function xx() {
 }
 
 function ab() {
-  a(false, INST.CCCACTIUNE);  //prelungire
-  b();  //show tabela calcule
+  var ret1 = false, ret2 = false;
+  ret1 = a(false, INST.CCCACTIUNE);
+  ret2 = b();  //show tabela calcule
+
+  if (ret1 && ret2) {
+    return true;
+  } else {
+    return false;
+  }
 }
 
 function abcd() {
+  INST.UTBL05 = 300;
   a(false, INST.CCCACTIUNE);  //2=Prelungire, 3=Lichidare
   b();  //show tabela calcule
   //9600
