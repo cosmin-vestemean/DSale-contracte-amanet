@@ -214,6 +214,15 @@ function ON_LOCATE()
 		statusRO(); // Read only campuri in functie de status contract
 
 		INST.SETREADONLY('CCCVALPOINTS',1);
+
+    xx();
+
+  	if (itsMe) {
+  		//comm1(0);
+  		//debugger;
+  		sendJson(true, 123, urlDummy);
+  		itsMe = false;
+  	}
 }
 
 function ON_CANCEL()
@@ -230,15 +239,6 @@ function ON_CANCEL()
 	if (INST.CCCINSTS>0&&vID==0)
 	X.EXCEPTION('Salvati documentul!');
 	}
-	}
-
-  xx();
-
-	if (itsMe) {
-		//comm1(0);
-		//debugger;
-		sendJson(true, 123, urlDummy);
-		itsMe = false;
 	}
 }
 
@@ -2659,7 +2659,7 @@ function prelungire_contract(showNext)
   TblFin.CCCAPR1=INST.CCCAPR1;
   TblFin.CCCAPR=INST.CCCAPR;
   TblFin.CCCINST=INST.CCCINST;
-  debugger;
+  //debugger;
   TblFin.CCCINSTS=INST.INST;
   TblFin.CCCCNTRTYPE=2;
   TblFin.UTBL04=3100;
@@ -3987,7 +3987,7 @@ function sendJson(dummy, inst, url, b64, pdf) {
 }
 
 function dummyCallback(xmlhttp) {
-	debugger;
+	//debugger;
 	comm1(0);
 }
 
