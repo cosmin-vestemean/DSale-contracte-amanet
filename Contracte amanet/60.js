@@ -44,7 +44,7 @@ function ON_POST()
 		else
 		X.EXCEPTION('Valoare necorespunzatoare imprumut!');
 
-		interogare_SMS();
+		if (!INST.CCCGETCOM) interogare_SMS();
 
 		if (INST.UTBL04!=1100&&INST.UTBL04!=1200)
 		{
@@ -60,12 +60,13 @@ function ON_POST()
 
 		// Aplicare promotie la salvare contract/act aditional, doar la intocmire; ulterior, se aplica doar la recalculare in grid comisioane
 		if (INST.PRJC>0) {}
-		else
-		validare_use_promo();
+		else {
+		    if (!INST.CCCGETCOM) validare_use_promo();
+      }
 
 		// Aplicare Promotii - Act Aditional// (?) id=0 cand nu e salvat...
 		if (vID<0)
-		validare_use_promo();
+		if (!INST.CCCGETCOM) validare_use_promo();
 
 		//Validare acordare imprumut inainte de salvare contract
 
@@ -112,7 +113,6 @@ function ON_AFTERPOST()
 {
   docID();
 
-<<<<<<< HEAD
   if (INST.CCCGETCOM) {
     if (INST.CCCACTIUNE){
       if (INST.CCCGETCOM == 1) {
@@ -122,13 +122,7 @@ function ON_AFTERPOST()
       } else if (INST.CCCGETCOM == 2) {
         abcd();
       }
-  }
-
-=======
-  if (INST.CCCGETCOM){
-    ab();
->>>>>>> parent of 0027245... Update 60.js
-    X.RUNSQL('update INST set CCCGETCOM=0 where INST='+vID, null);
+    }
   }
 
 		if (INST.UTBL04!=1100&&INST.UTBL04!=1200)
@@ -208,12 +202,13 @@ function ON_AFTERPOST()
 		{
 		if (INST.UTBL04!=1100&&INST.UTBL04!=1200&&INST.UTBL04!=1300) {
         if (!INST.CCCGETCOM) {
-          conditiiPrint();
+          //conditiiPrint();
         }
       }
 		}
 
-    itsMe = true;
+    itsMe = true; //pt ON_LOCATE
+    X.RUNSQL('update INST set CCCGETCOM=0 where INST='+vID, null);
 }
 
 function ON_INSERT()
@@ -277,16 +272,11 @@ function ON_DELETE()
 function EXECCOMMAND(cmd)
 {
   if (cmd == '20200313') {
-    //abcd();
     debugger;
-<<<<<<< HEAD
     INST.CCCGETCOM = 2;
     INST.CCCACTIUNE = 2;
-    abcd();
-=======
-    INST.CCCGETCOM = 1;
     ab();
->>>>>>> parent of 0027245... Update 60.js
+    //abcd();
   }
 
 	if (cmd == '20190528')
@@ -2338,7 +2328,7 @@ function validare_aplicare_com()
 		{
 		if (INST.INST>0)
 		{
-		validare_use_promo();
+		if (!INST.CCCGETCOM) validare_use_promo();
 		//if (INST.CCCVOUCHER>0)
 	  aplicare_discount_voucher();
 		if (INST.CCCCARDUSE>0)
@@ -2701,7 +2691,7 @@ function prelungire_contract(showNext)
   if (INST.INST) TblFin.CCCINSTS=INST.INST;
   TblFin.CCCCNTRTYPE=2;
   TblFin.UTBL04=3100;
-
+  debugger;
 	var id = myObj.DBPOST;
 	//X.WARNING('New id is:' + id);
 } catch (e) {
@@ -3198,7 +3188,8 @@ function validare_use_promo()
 		// Aplicare doar la contracte cu durata normala
 		DsTipDurata = X.GETSQLDATASET('select type from cccdurata where durata='+INST.UTBL01,null);
 		if (DsTipDurata.type==2)
-		aplicare_discount_promotii();
+		  if (!INST.CCCGETCOM)
+        aplicare_discount_promotii();
 
 	vdel=0;
 }
@@ -4184,7 +4175,6 @@ function xx() {
 }
 
 function ab() {
-<<<<<<< HEAD
   var ret1 = false, ret2 = false;
   ret1 = a(false, INST.CCCACTIUNE);
   ret2 = b();  //show tabela calcule
@@ -4199,14 +4189,6 @@ function ab() {
 function abcd() {
   INST.UTBL05 = 300;
   a(false, INST.CCCACTIUNE);  //2=Prelungire, 3=Lichidare
-=======
-  a(false, 2);  //prelungire
-  b();  //show tabela calcule
-}
-
-function abcd() {
-  a(false, 2);  //prelungire
->>>>>>> parent of 0027245... Update 60.js
   b();  //show tabela calcule
   //9600
   c(false); //accept calcule
