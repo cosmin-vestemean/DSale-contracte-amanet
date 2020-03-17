@@ -112,6 +112,7 @@ function ON_AFTERPOST()
 {
   docID();
 
+<<<<<<< HEAD
   if (INST.CCCGETCOM) {
     if (INST.CCCACTIUNE){
       if (INST.CCCGETCOM == 1) {
@@ -123,6 +124,10 @@ function ON_AFTERPOST()
       }
   }
 
+=======
+  if (INST.CCCGETCOM){
+    ab();
+>>>>>>> parent of 0027245... Update 60.js
     X.RUNSQL('update INST set CCCGETCOM=0 where INST='+vID, null);
   }
 
@@ -272,10 +277,16 @@ function ON_DELETE()
 function EXECCOMMAND(cmd)
 {
   if (cmd == '20200313') {
+    //abcd();
     debugger;
+<<<<<<< HEAD
     INST.CCCGETCOM = 2;
     INST.CCCACTIUNE = 2;
     abcd();
+=======
+    INST.CCCGETCOM = 1;
+    ab();
+>>>>>>> parent of 0027245... Update 60.js
   }
 
 	if (cmd == '20190528')
@@ -4173,6 +4184,7 @@ function xx() {
 }
 
 function ab() {
+<<<<<<< HEAD
   var ret1 = false, ret2 = false;
   ret1 = a(false, INST.CCCACTIUNE);
   ret2 = b();  //show tabela calcule
@@ -4187,6 +4199,14 @@ function ab() {
 function abcd() {
   INST.UTBL05 = 300;
   a(false, INST.CCCACTIUNE);  //2=Prelungire, 3=Lichidare
+=======
+  a(false, 2);  //prelungire
+  b();  //show tabela calcule
+}
+
+function abcd() {
+  a(false, 2);  //prelungire
+>>>>>>> parent of 0027245... Update 60.js
   b();  //show tabela calcule
   //9600
   c(false); //accept calcule
