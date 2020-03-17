@@ -597,4 +597,15 @@ if (SALDOC.FPRMS == 7000 || SALDOC.FPRMS == 7900) {
 	sendJson(fin, urlMtrls, 1);
 }
 }
+
+create table CCCPDFFACTURA (
+IDFACTURA integer primary key identity(1,1) not null,
+IDCOMANDA integer,
+FACTURA64 varchar (max),
+GARANTIA64 varchar(max),
+SENTDATE datetime
+)
+
+select {tipDoc}, idcomanda from CCCPDFFACTURA
+where idcomanda={findoc}
 */
