@@ -4187,7 +4187,8 @@ function ON_LOCATE() {
 
 }
 
-select BASE64, inst, orig from CCCPDFINST
+//getContrAd64
+select base64, inst, orig, (select trdr from inst where inst={inst}) trdr from CCCPDFINST
 where inst={inst}
 
 //ALTER TABLE INST ADD CCCDATAPLATABTN DATETIME null, CCCSUMATRANSMISA FLOAT null, CCCCOMNETOPIA FLOAT null,

@@ -606,6 +606,7 @@ GARANTIA64 varchar(max),
 SENTDATE datetime
 )
 
-select {tipDoc}, idcomanda from CCCPDFFACTURA
+getDoc64
+select {tipDoc}, idcomanda, (select trdr from findoc where findoc={findoc}) trdr from CCCPDFFACTURA
 where idcomanda={findoc}
 */
