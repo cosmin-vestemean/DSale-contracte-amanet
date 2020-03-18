@@ -703,7 +703,7 @@ function b() {
 
 		//Plata online, suma transmisa pe web service; daca a fost transmisa, atat plateste, suprascriu propunerile de mai sus
 		if (INST.CCCSUMATRANSMISA) {
-			CCCVPAY.PAYAMNT = INST.CCCSUMATRANSMISA;
+			CCCVPAYSUM.PAYAMNT = INST.CCCSUMATRANSMISA;
 		}
 
 		distribuire_incasare();
@@ -2860,6 +2860,16 @@ function distribuire_incasare() {
 			}
 
 		}
+	}
+
+	if (INST.CCCGETCOM == 2) {
+		//dupa cod 'CMO', mtrl=123001
+		INSTLINESS.APPEND;
+		INSTLINESS.MTRL = X.SQL("select mtrl from mtrl where code='CMO'", null);
+		INSTLINESS.QTY1 = 1;
+		INSTLINESS.PRICE = INST.CCCCOMNETOPIA;
+		INSTLINESS.CCCPAID = INST.CCCCOMNETOPIA;
+		INSTLINESS.POST;
 	}
 }
 
