@@ -99,7 +99,6 @@ function ON_POST() {
 function ON_AFTERPOST() {
 	docID();
 
-	/*
 	if (INST.CCCGETCOM) {
 	   if (INST.CCCACTIUNE){
 	      if (INST.CCCGETCOM == 1) {
@@ -111,7 +110,6 @@ function ON_AFTERPOST() {
 	          }
 	      }
   }
-	*/
 
 
 	/*
@@ -249,6 +247,7 @@ function EXECCOMMAND(cmd) {
 	if (cmd == '20200313') {
 
     //debugger;
+		/*
 		INST.CCCGETCOM = 2;
 		INST.CCCACTIUNE = 2;
 
@@ -263,6 +262,7 @@ function EXECCOMMAND(cmd) {
 				}
 			}
 		}
+		*/
 	}
 
 	if (cmd == '20190528') {
@@ -707,7 +707,7 @@ function b() {
 
 	if (INST.UTBL05 == 300) {
 		//Plata online, suma transmisa pe web service; daca a fost transmisa, atat plateste, suprascriu propunerile de mai sus
-		INST.CCCSUMATRANSMISA = 100;
+		//INST.CCCSUMATRANSMISA = 100;
 		if (INST.CCCSUMATRANSMISA) {
 			CCCVPAYSUM.PAYAMNT = INST.CCCSUMATRANSMISA;
 		}
@@ -733,11 +733,14 @@ function c(showNext) {
 
 	//else
 	//{
+
+	docID();
 	CCCVPAY.FIRST;
 	while (!CCCVPAY.Eof) {
 		if (CCCVPAY.SODTYPE == 51) {
 			INSTLINES.LOCATE('INSTLINES', CCCVPAY.INSTLINES);
 			INSTLINES.CCCPAY = CCCVPAY.PRICE;
+			X.RUNSQL('update instlines set CCCPAY='+CCCVPAY.PRICE+' where inst='+vID+' and instlines='+CCCVPAY.INSTLINES, null);
 			// Reproducere in doc retail - la salvare
 			//INSTLINES.CCCPAID = CCCVPAY.PRICE + INSTLINES.CCCPAID;
 		}
@@ -747,6 +750,7 @@ function c(showNext) {
 			INSTLINESS.LOCATE('INSTLINES', CCCVPAY.INSTLINES);
 			//INSTLINESS.LOCATE('MTRL',CCCVPAY.MTRL);
 			INSTLINESS.CCCPAY = CCCVPAY.PRICE;
+			X.RUNSQL('update instlines set CCCPAY='+CCCVPAY.PRICE+' where inst='+vID+' and instlines='+CCCVPAY.INSTLINES, null);
 			//INSTLINESS.CCCQTY = CCCVPAY.CCCQTY;
 
 			DsCod = X.GETSQLDATASET('select code from mtrl where mtrl=' + INSTLINESS.MTRL, null);
@@ -795,8 +799,8 @@ function c(showNext) {
 		//daca in dialog cu site pe ramura prelungire sau lichidare
 		//&& INST.CCCGETCOM == 2
 		//INST.CCCSUMATRANSMISA
-		debugger;
-		if (INST.CCCACTIUNE) {
+		//debugger;
+		if (INST.CCCACTIUNE && INST.CCCGETCOM == 2) {
 			var r = X.CreateObj('RETAILDOC; S1 - Amanet');
 			try {
 				r.DBINSERT;
@@ -810,7 +814,6 @@ function c(showNext) {
 
 				var la = r.FindTable('ITELINES');
 
-				docID();
 				var DsArt = X.GETSQLDATASET('select mtrl, qty, cccqty, cccpay, cccprice, instlines from instlines where sodtype=51 and isnull(cccpay,0)<>0 and inst='+vID,null);
 
 				var DsSrv = X.GETSQLDATASET('select mtrl, qty, cccqty, cccpay, cccprice, instlines from instlines where sodtype=52 and isnull(cccpay,0)<>0 and inst='+vID,null);
@@ -2592,14 +2595,14 @@ function date_prelungire() {
 	INST.CCCCNTRTYPE = 2;
 
 	// Preluare date grid
-	X.WARNING('select mtrl, qty, cccweight, cccgweight, cccqty, cccprice, cccaddprc, price, cccpaid, cccdesc, comments, ccceval from instlines where sodtype=51 and inst=' + INST.CCCINSTS);
+	//X.WARNING('select mtrl, qty, cccweight, cccgweight, cccqty, cccprice, cccaddprc, price, cccpaid, cccdesc, comments, ccceval from instlines where sodtype=51 and inst=' + INST.CCCINSTS);
 	DsArt = X.GETSQLDATASET('select mtrl, qty, cccweight, cccgweight, cccqty, cccprice, cccaddprc, price, cccpaid, cccdesc, comments, ccceval from instlines where sodtype=51 and inst=' + INST.CCCINSTS, null);
 	DsSrv = X.GETSQLDATASET('select mtrl, qty, cccweight, cccgweight, cccpay from instlines where sodtype=52 and inst=' + INST.CCCINSTS, null);
 	if (DsArt.RECORDCOUNT > 0) {
 		DsArt.FIRST;
-		debugger;
+		//debugger;
 		while (!DsArt.Eof) {
-			X.WARNING(DsArt.cccpaid);
+			//X.WARNING(DsArt.cccpaid);
 			ceRest = DsArt.price - DsArt.cccpaid;
 			if (ceRest != 0) {
 				INSTLINES.APPEND;
@@ -2721,6 +2724,8 @@ function distribuire_incasare() {
 	CCCVPAYSUM.NEXT;
 	zileInit = cateZile;
 	//zileInit = CCCVPAYSUM.DAYS;
+
+	//X.EXCEPTION(CCCVPAYSUM.PAYAMNT);
 
 
 	//X.WARNING('Pay='+CCCVPAYSUM.PAYAMNT+' Cnormal='+ceSumC+'; Cint='+ceSumCI+'; Cadm='+ceSumCA);
