@@ -590,7 +590,7 @@ function ON_SFCCCVPAY_SHOW() {
 	b();
 }
 
-function b(plataOnline) {
+function b() {
 	vdel = 1;
 	CCCVPAY.FIRST;
 	while (!CCCVPAY.Eof) {
@@ -701,10 +701,11 @@ function b(plataOnline) {
 		CCCVPAYSUM.PAYAMNT = DsOP.opval;
 		//if (INST.CCCPAYTYPE == 2)
 
-		if (plataOnline) {
-			CCCVPAY.PAYAMNT = plataOnline;
+		//Plata online, suma transmisa pe web service; daca a fost transmisa, atat plateste, suprascriu propunerile de mai sus
+		if (INST.CCCSUMATRANSMISA) {
+			CCCVPAY.PAYAMNT = INST.CCCSUMATRANSMISA;
 		}
-		
+
 		distribuire_incasare();
 
 		CCCVPAYSUM.SETREADONLY('PAYAMNT', 1);
