@@ -245,13 +245,11 @@ function ON_DELETE() {
 
 function EXECCOMMAND(cmd) {
 	if (cmd == '20200313') {
-		debugger;
+		/*
+
+    debugger;
 		INST.CCCGETCOM = 2;
 		INST.CCCACTIUNE = 2;
-		/*
-		ab();
-		 */
-		//abcd();
 
 		if (INST.CCCGETCOM) {
 			if (INST.CCCACTIUNE) {
@@ -264,6 +262,8 @@ function EXECCOMMAND(cmd) {
 				}
 			}
 		}
+
+    */
 	}
 
 	if (cmd == '20190528') {
