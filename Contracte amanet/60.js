@@ -590,7 +590,7 @@ function ON_SFCCCVPAY_SHOW() {
 	b();
 }
 
-function b() {
+function b(plataOnline) {
 	vdel = 1;
 	CCCVPAY.FIRST;
 	while (!CCCVPAY.Eof) {
@@ -700,6 +700,11 @@ function b() {
 		DsOP = X.GETSQLDATASET('select sum(llineval) as opval from trdtlines where inst=' + vID + ' and sosource=1413', null);
 		CCCVPAYSUM.PAYAMNT = DsOP.opval;
 		//if (INST.CCCPAYTYPE == 2)
+
+		if (plataOnline) {
+			CCCVPAY.PAYAMNT = plataOnline;
+		}
+		
 		distribuire_incasare();
 
 		CCCVPAYSUM.SETREADONLY('PAYAMNT', 1);
