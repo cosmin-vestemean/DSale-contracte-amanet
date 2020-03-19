@@ -2,12 +2,14 @@ var cePayType = 2;
 var vdel = 0;
 var folderPath = 'C:\\S1Print\\doc\\',
 itsMe = false,
+itsMe1 = false,
 urlDummy = 'https://dev.creditamanet.ro/api/test',
 urlEmail = 'https://dev.creditamanet.ro/api/sendDocsOnEmail',
 countms = '',
 tipInst;
 
 function ON_POST() {
+	if (!INST.CCCGETCOM) {
 	if (INST.CCCACOMM > 0) {}
 	else
 		X.EXCEPTION('Grila comision: nu exista!');
@@ -88,6 +90,7 @@ function ON_POST() {
 		}
 
 	}
+}
 
 	/*if (vID==0)  // Mutat la acordare imprumut{
 	DsGDPR = X.GETSQLDATASET('select consent, noconsent from trdr where trdr='+INST.TRDR,null);
@@ -96,28 +99,40 @@ function ON_POST() {
 	}*/
 }
 
-function ON_AFTERPOST() {
-	docID();
+/*
+INST.CCCGETCOM = 2;
+INST.CCCACTIUNE = 2;
+INST.CCCSUMATRANSMISA = 30;
+INST.BLCKDATE = '20200319';
+INST.UTBL05 = 300;
+*/
 
-	if (INST.CCCGETCOM) {
-	   if (INST.CCCACTIUNE){
-	      if (INST.CCCGETCOM == 1) {
-	         if (!ab()) {
+function yyy(getcom, actiune, sumatransm, mopla) {
+	if (getcom) {
+	   if (actiune){
+	      if (getcom == 1) {
+	         if (!ab(actiune, sumatransm)) {
 	            //ceva nu a mers bine, fa ceva cu aceasta info
 	           }
-	          } else if (INST.CCCGETCOM == 2) {
-	             abcd();
+	          } else if (getcom == 2) {
+	             abcd(actiune, sumatransm, getcom, mopla);
 	          }
 	      }
   }
+}
 
+function ON_AFTERPOST() {
+	docID();
 
-	/*
-	//ca la buton
-	INST.CCCGETCOM = 2;
-	INST.CCCACTIUNE = 2;
-	ab();
-	 */
+	if (!itsMe1)
+		var dss = X.GETSQLDATASET('select CCCGETCOM, CCCACTIUNE, CCCSUMATRANSMISA from inst where inst='+vID, null);
+		yyy(dss.CCCGETCOM, dss.CCCACTIUNE, dss.CCCSUMATRANSMISA, 300);
+
+	if (dss.CCCGETCOM) {
+		X.RUNSQL('update INST set CCCGETCOM=0 where INST=' + vID, null);
+		itsMe = true; //pt ON_LOCATE
+		return;
+	}
 
 	if (INST.UTBL04 != 1100 && INST.UTBL04 != 1200) {
 		docID();
@@ -188,8 +203,8 @@ function ON_AFTERPOST() {
 		}
 	}
 
-	itsMe = true; //pt ON_LOCATE
 	X.RUNSQL('update INST set CCCGETCOM=0 where INST=' + vID, null);
+	itsMe = true; //pt ON_LOCATE
 }
 
 function ON_INSERT() {
@@ -247,22 +262,13 @@ function EXECCOMMAND(cmd) {
 	if (cmd == '20200313') {
 
     //debugger;
-		/*
 		INST.CCCGETCOM = 2;
 		INST.CCCACTIUNE = 2;
-
-		if (INST.CCCGETCOM) {
-			if (INST.CCCACTIUNE) {
-				if (INST.CCCGETCOM == 1) {
-					if (!ab()) {
-						//ceva nu a mers bine, fa ceva cu aceasta info
-					}
-				} else if (INST.CCCGETCOM == 2) {
-					abcd();
-				}
-			}
-		}
-		*/
+		INST.CCCSUMATRANSMISA = 30;
+		INST.BLCKDATE = '20200319';
+		itsMe1 = true;
+		yyy(INST.CCCGETCOM, INST.CCCACTIUNE, INST.CCCSUMATRANSMISA, 300);
+		itsMe1 = false;
 	}
 
 	if (cmd == '20190528') {
@@ -480,6 +486,7 @@ function ON_SFVPAYTYPE_ACCEPT() {
 
 function a(showNext, tipActiune) {
 	INST.CCCPAYTYPE = tipActiune;
+
 	if (showNext)
 		gridRO(INSTLINES, 0);
 
@@ -589,7 +596,7 @@ function ON_SFCCCVPAY_SHOW() {
 	b();
 }
 
-function b() {
+function b(misum, mopla) {
 	vdel = 1;
 	CCCVPAY.FIRST;
 	while (!CCCVPAY.Eof) {
@@ -618,6 +625,7 @@ function b() {
 		CCCVPAY.CCCPRICE = INSTLINES.CCCPRICE;
 		CCCVPAY.VALUE = INSTLINES.PRICE;
 		CCCVPAY.PAID = INSTLINES.CCCPAID;
+		//debugger;
 		CCCVPAY.TOPAY = INSTLINES.PRICE - INSTLINES.CCCPAID;
 		if (cePayType == 1 || cePayType == 2)
 			CCCVPAY.PRICE = 0;
@@ -683,6 +691,7 @@ function b() {
 
 	CCCVPAYSUM.ITEAMNT = ceSumI;
 	CCCVPAYSUM.SRVAMNT = ceSumC + ceSumCI + ceSumCA;
+
 	docID();
 	X.RUNSQL('update INST set CCCCOMZI = ' + CCCVPAYSUM.SRVAMNT + ' where INST =' + vID, null);
 
@@ -705,11 +714,13 @@ function b() {
 		CCCVPAYSUM.SETREADONLY('PAYAMNT', 1);
 	}
 
+	INST.UTBL05=mopla;
+
 	if (INST.UTBL05 == 300) {
 		//Plata online, suma transmisa pe web service; daca a fost transmisa, atat plateste, suprascriu propunerile de mai sus
 		//INST.CCCSUMATRANSMISA = 100;
-		if (INST.CCCSUMATRANSMISA) {
-			CCCVPAYSUM.PAYAMNT = INST.CCCSUMATRANSMISA;
+		if (misum) {
+			CCCVPAYSUM.PAYAMNT = misum;
 		}
 
 		distribuire_incasare();
@@ -725,8 +736,8 @@ function ON_SFCCCVPAY_ACCEPT() {
 	c(true);
 }
 
-function c(showNext) {
-	dsRO(INSTLINES, 0);
+function c(showNext, actiune, getcom) {
+	if (!showNext) dsRO(INSTLINES, 0);
 
 	if (ceAchit == 0) {}
 	//X.EXCEPTION('Nu exista nimic de achitat. Anulati actiunea!');
@@ -799,8 +810,10 @@ function c(showNext) {
 		//daca in dialog cu site pe ramura prelungire sau lichidare
 		//&& INST.CCCGETCOM == 2
 		//INST.CCCSUMATRANSMISA
-		//debugger;
-		if (INST.CCCACTIUNE && INST.CCCGETCOM == 2) {
+		debugger;
+
+		var id = -1;
+		if (actiune && getcom == 2) {
 			var r = X.CreateObj('RETAILDOC; S1 - Amanet');
 			try {
 				r.DBINSERT;
@@ -826,10 +839,12 @@ function c(showNext) {
 					la.QTY1 = DsArt.qty;
 					la.PRICE = DsArt.cccpay;
 					la.MTRLINESS = DsArt.instlines;
+					/*
 					if (INSTLINES.LOCATE('INSTLINES', DsArt.instlines) == 1) {
-						INSTLINES.CCCPAID = DsArt.cccpay;
+						//INSTLINES.CCCPAID = DsArt.cccpay;
 						X.RUNSQL('update instlines set CCCPAID='+DsArt.cccpay+' where inst='+vID+' and instlines='+DsArt.instlines, null);
 					}
+					*/
 					la.POST;
 
 					DsArt.NEXT;
@@ -846,9 +861,12 @@ function c(showNext) {
 					ls.QTY1 = DsSrv.cccqty;
 					ls.PRICE = DsSrv.cccprice;
 					ls.MTRLINESS = DsSrv.instlines;
+					/*
 					if (INSTLINESS.LOCATE('INSTLINES', DsSrv.instlines) == 1) {
-						INSTLINESS.CCCPAID = DsSrv.cccprice;
+						//INSTLINESS.CCCPAID = DsSrv.cccprice;
+						X.RUNSQL('update instlines set CCCPAID='+DsSrv.cccpay+' where inst='+vID+' and instlines='+DsSrv.instlines, null);
 					}
+					*/
 					ls.POST;
 
 					DsSrv.NEXT;
@@ -866,7 +884,9 @@ function c(showNext) {
 				c.LINEVAL = 100;
 				c.POST;
 
-				var id = r.DBPOST;
+				id = r.DBPOST;
+
+
 
 				if (!id) {
 					X.EXCEPTION('Nu s-a putut opera incasarea.');
@@ -876,6 +896,17 @@ function c(showNext) {
 			} finally {
 				r.FREE;
 				r = null;
+
+				docID();
+				var DsDate = X.GETSQLDATASET('select llineval, mtrliness from mtrlines where findoc='+id,null);
+				DsDate.FIRST;
+				while (!DsDate.Eof) {
+					DsActual = X.GETSQLDATASET('select cccpaid from instlines where instlines='+DsDate.mtrliness+' and inst='+vID,null);
+					var cePaid = DsActual.cccpaid;
+					var cePay = DsActual.cccpaid+DsDate.llineval;
+					X.RUNSQL('update instlines set cccpaid='+cePay+' where instlines='+DsDate.mtrliness+' and inst='+vID,null);
+					DsDate.NEXT;
+				}
 			}
 		}
 	}
@@ -3917,11 +3948,11 @@ function xx() {
 	})();
 }
 
-function ab() {
+function ab(actiune, sumatr) {
 	var ret1 = false,
 	ret2 = false;
-	ret1 = a(false, INST.CCCACTIUNE);
-	ret2 = b(); //show tabela calcule
+	ret1 = a(false, actiune);
+	ret2 = b(sumatr); //show tabela calcule
 
 	if (ret1 && ret2) {
 		return true;
@@ -3930,12 +3961,11 @@ function ab() {
 	}
 }
 
-function abcd() {
-	INST.UTBL05 = 300;
-	a(false, INST.CCCACTIUNE); //2=Prelungire, 3=Lichidare
-	b(); //show tabela calcule
+function abcd(actiune, sumatransm, getcom, mopla) {
+	a(false, actiune); //2=Prelungire, 3=Lichidare
+	b(sumatransm, mopla); //show tabela calcule
 	//9600
-	c(false); //accept calcule,prelungeste
+	c(false, actiune, getcom); //accept calcule,prelungeste
 }
 
 /*
