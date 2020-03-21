@@ -1,102 +1,114 @@
+
 var cePayType = 2;
 var vdel = 0;
 var folderPath = 'C:\\S1Print\\doc\\',
 itsMe = false,
 itsMe1 = false,
+itsSaveBtn = false,
+oldGetCom = 0,
 urlDummy = 'https://dev.creditamanet.ro/api/test',
 urlEmail = 'https://dev.creditamanet.ro/api/sendDocsOnEmail',
 countms = '',
 tipInst;
 
 function ON_POST() {
-	if (!INST.CCCGETCOM) {
-	if (INST.CCCACOMM > 0) {}
-	else
-		X.EXCEPTION('Grila comision: nu exista!');
+	if (INST.CCCGETCOM) X.WARNING('_POST');
+	if (!INST.UTBL03)
+		INST.UTBL03 = 1;
+	if (parseInt(INST.CCCGETCOM) == 0) {
+		if (INST.CCCACOMM > 0) {}
+		else
+			X.EXCEPTION('Grila comision: nu exista!');
 
-	validare_perioada();
-
-	docID();
-
-	// Validare suplimentara - acte aditionale dublate
-	if (vID == 0) {
-		DsValidare = X.GETSQLDATASET('select inst from inst where isnull(cccinsts,0)>0 and cccinsts=' + INST.CCCINSTS, null);
-		if (DsValidare.RECORDCOUNT > 0) {
-			X.EXCEPTION('Salvare nepermisa, exista alt act aditional generat!');
-		}
-	}
-
-	if (INST.CCCITESUM > 0) {
-		sum = 0;
-		INSTLINES.FIRST;
-		while (!INSTLINES.Eof) {
-			if (INSTLINES.PRICE == 0 || INSTLINES.PRICE < 0 || INSTLINES.MTRL == '')
-				sum += 1;
-
-			INSTLINES.NEXT;
-		}
-		if (sum > 0)
-			X.EXCEPTION('Valoare necorespunzatoare articole/imprumut!');
-	} else
-		X.EXCEPTION('Valoare necorespunzatoare imprumut!');
-
-	if (!INST.CCCGETCOM)
-		interogare_SMS();
-
-	if (INST.UTBL04 != 1100 && INST.UTBL04 != 1200) {
-		validare_ID();
-
-		formare_nume();
-
-		//Interogare Alerta SMS la acordare imprumut
-		//interogare_SMS();
+		validare_perioada();
 
 		docID();
 
-		// Aplicare promotie la salvare contract/act aditional, doar la intocmire; ulterior, se aplica doar la recalculare in grid comisioane
-		if (INST.PRJC > 0) {}
-		else {
-			if (!INST.CCCGETCOM)
-				validare_use_promo();
-		}
-
-		// Aplicare Promotii - Act Aditional// (?) id=0 cand nu e salvat...
-		if (vID < 0)
-			if (!INST.CCCGETCOM)
-				validare_use_promo();
-
-		//Validare acordare imprumut inainte de salvare contract
-
-
-		if (INST.CCCINSTS > 0)
-			DsImprumut = X.GETSQLDATASET('select findoc from findoc where sosource=1351 and fprms=9000 and inst=' + INST.CCCINST, null);
-		else
-			DsImprumut = X.GETSQLDATASET('select findoc from findoc where sosource=1351 and fprms=9000 and inst=' + vID, null);
-
-		if (DsImprumut.RECORDCOUNT == 0) {
-			var ans;
-			ans = X.ASK('Salvare', 'Acordati imprumutul?');
-
-			if (ans == 6) {
-				if (INST.BRANCH == X.SYS.BRANCH) // Se acorda imprumut doar din agentia logarii
-				{}
-				// Mergi mai departe... se acorda imprumutul in AFTERPOST
-				else
-					X.EXCEPTION('Sucursala necorespunzatoare!');
-			} else {
-				INST.PRJC = null;
-				X.EXCEPTION('Actiune anulata!');
+		// Validare suplimentara - acte aditionale dublate
+		if (vID == 0) {
+			DsValidare = X.GETSQLDATASET('select inst from inst where isnull(cccinsts,0)>0 and cccinsts=' + INST.CCCINSTS, null);
+			if (DsValidare.RECORDCOUNT > 0) {
+				X.EXCEPTION('Salvare nepermisa, exista alt act aditional generat!');
 			}
 		}
 
+		if (INST.CCCITESUM > 0) {
+			sum = 0;
+			INSTLINES.FIRST;
+			while (!INSTLINES.Eof) {
+				if (INSTLINES.PRICE == 0 || INSTLINES.PRICE < 0 || INSTLINES.MTRL == '')
+					sum += 1;
+
+				INSTLINES.NEXT;
+			}
+			if (sum > 0)
+				X.EXCEPTION('Valoare necorespunzatoare articole/imprumut!');
+		} else
+			X.EXCEPTION('Valoare necorespunzatoare imprumut!');
+
+		interogare_SMS();
+
+		if (INST.UTBL04 != 1100 && INST.UTBL04 != 1200) {
+			validare_ID();
+
+			formare_nume();
+
+			//Interogare Alerta SMS la acordare imprumut
+			//interogare_SMS();
+
+			docID();
+
+			// Aplicare promotie la salvare contract/act aditional, doar la intocmire; ulterior, se aplica doar la recalculare in grid comisioane
+			if (INST.PRJC > 0) {}
+			else {
+				if (!INST.CCCGETCOM && !oldGetCom)
+					validare_use_promo();
+			}
+
+			// Aplicare Promotii - Act Aditional// (?) id=0 cand nu e salvat...
+			if (vID < 0)
+				if (!INST.CCCGETCOM && !oldGetCom)
+					validare_use_promo();
+
+			//Validare acordare imprumut inainte de salvare contract
+
+
+			if (INST.CCCINSTS > 0)
+				DsImprumut = X.GETSQLDATASET('select findoc from findoc where sosource=1351 and fprms=9000 and inst=' + INST.CCCINST, null);
+			else
+				DsImprumut = X.GETSQLDATASET('select findoc from findoc where sosource=1351 and fprms=9000 and inst=' + vID, null);
+
+			if (DsImprumut.RECORDCOUNT == 0) {
+				var ans;
+				ans = X.ASK('Salvare', 'Acordati imprumutul?');
+
+				if (ans == 6) {
+					if (INST.BRANCH == X.SYS.BRANCH) // Se acorda imprumut doar din agentia logarii
+					{}
+					// Mergi mai departe... se acorda imprumutul in AFTERPOST
+					else
+						X.EXCEPTION('Sucursala necorespunzatoare!');
+				} else {
+					INST.PRJC = null;
+					X.EXCEPTION('Actiune anulata!');
+				}
+			}
+
+		}
+
+		if (itsSaveBtn) {
+			itsSaveBtn = false;
+			INST.CCCGETCOM = oldGetCom;
+			oldGetCom = 0;
+		}
 	}
-}
 
 	/*if (vID==0)  // Mutat la acordare imprumut{
 	DsGDPR = X.GETSQLDATASET('select consent, noconsent from trdr where trdr='+INST.TRDR,null);
 	INST.CCCCONSENT = DsGDPR.consent;
 	INST.CCCNOCONSENT = DsGDPR.noconsent;
 	}*/
+	if (INST.CCCGETCOM) X.WARNING('Exit _POST');
 }
 
 /*
@@ -105,33 +117,21 @@ INST.CCCACTIUNE = 2;
 INST.CCCSUMATRANSMISA = 30;
 INST.BLCKDATE = '20200319';
 INST.UTBL05 = 300;
-*/
-
-function yyy(getcom, actiune, sumatransm, mopla) {
-	if (getcom) {
-	   if (actiune){
-	      if (getcom == 1) {
-	         if (!ab(actiune, sumatransm)) {
-	            //ceva nu a mers bine, fa ceva cu aceasta info
-	           }
-	          } else if (getcom == 2) {
-	             abcd(actiune, sumatransm, getcom, mopla);
-	          }
-	      }
-  }
-}
+ */
 
 function ON_AFTERPOST() {
+	if (INST.CCCGETCOM) X.WARNING('_AFTERPOST');
 	docID();
 
-	if (!itsMe1)
-		var dss = X.GETSQLDATASET('select CCCGETCOM, CCCACTIUNE, CCCSUMATRANSMISA from inst where inst='+vID, null);
-		yyy(dss.CCCGETCOM, dss.CCCACTIUNE, dss.CCCSUMATRANSMISA, 300);
-
-	if (dss.CCCGETCOM) {
-		X.RUNSQL('update INST set CCCGETCOM=0 where INST=' + vID, null);
-		itsMe = true; //pt ON_LOCATE
-		return;
+	//var dss = X.GETSQLDATASET('select CCCGETCOM, CCCACTIUNE, CCCSUMATRANSMISA from inst where inst=' + vID, null);
+	if (!itsSaveBtn) {
+		if (INST.CCCGETCOM && INST.CCCACTIUNE) { //protectie web
+			if (!itsMe1) { //protectie buton
+				var s = INST.CCCSUMATRANSMISA ? INST.CCCSUMATRANSMISA : 0;
+				INST.UTBL05 = 300;
+				initWeb(INST.CCCGETCOM, INST.CCCACTIUNE, INST.CCCSUMATRANSMISA, 300);
+			}
+		}
 	}
 
 	if (INST.UTBL04 != 1100 && INST.UTBL04 != 1200) {
@@ -203,8 +203,9 @@ function ON_AFTERPOST() {
 		}
 	}
 
-	X.RUNSQL('update INST set CCCGETCOM=0 where INST=' + vID, null);
 	itsMe = true; //pt ON_LOCATE
+
+	if (INST.CCCGETCOM) X.WARNING('Exit _AFTERPOST');
 }
 
 function ON_INSERT() {
@@ -230,7 +231,7 @@ function ON_LOCATE() {
 	xx();
 
 	if (itsMe) {
-		//comm1(0);
+		comm1(0);
 		//debugger;
 		sendJson(true, 123, urlDummy);
 		itsMe = false;
@@ -261,13 +262,16 @@ function ON_DELETE() {
 function EXECCOMMAND(cmd) {
 	if (cmd == '20200313') {
 
-    //debugger;
-		INST.CCCGETCOM = 2;
+		//debugger;
+		i = 0;
+		INST.CCCGETCOM = 1;
 		INST.CCCACTIUNE = 2;
-		INST.CCCSUMATRANSMISA = 30;
+		INST.CCCSUMATRANSMISA = 90;
 		INST.BLCKDATE = '20200319';
+		INST.CCCCOMNETOPIA = 8.3;
+		INST.UTBL05 = 300;
 		itsMe1 = true;
-		yyy(INST.CCCGETCOM, INST.CCCACTIUNE, INST.CCCSUMATRANSMISA, 300);
+		initWeb(INST.CCCGETCOM, INST.CCCACTIUNE, INST.CCCSUMATRANSMISA, 300);
 		itsMe1 = false;
 	}
 
@@ -596,7 +600,7 @@ function ON_SFCCCVPAY_SHOW() {
 	b();
 }
 
-function b(misum, mopla) {
+function b(actiune, misum, mopla) {
 	vdel = 1;
 	CCCVPAY.FIRST;
 	while (!CCCVPAY.Eof) {
@@ -612,6 +616,8 @@ function b(misum, mopla) {
 	ceSumC = 0; // Suma comision de incasat
 	ceSumCI = 0; // Suma comision intarziere
 	ceSumCA = 0; // Suma comision administare
+	ceSumCC = 0; // Suma comision card
+	ceSumCO = 0; // Suma comision online
 	cateZile = 0; // Zile incasare comision
 
 	INSTLINES.FIRST;
@@ -675,6 +681,13 @@ function b(misum, mopla) {
 			ceSumCA = ceSumCA + CCCVPAY.TOPAY;
 		}
 
+		if (DsCateg.mtrcategory == 111) {
+			ceSumCO = ceSumCO + CCCVPAY.TOPAY;
+		}
+
+		if (DsCateg.mtrcategory == 112) {
+			ceSumCC = ceSumCC + CCCVPAY.TOPAY;
+		}
 		ceSum = ceSum + CCCVPAY.TOPAY;
 
 		CCCVPAY.POST;
@@ -687,19 +700,37 @@ function b(misum, mopla) {
 	ceSumC = Math.round(ceSumC * 100) / 100; // Suma comision de incasat
 	ceSumCI = Math.round(ceSumCI * 100) / 100; // Suma comision intarziere
 	ceSumCA = Math.round(ceSumCA * 100) / 100; // Suma comision administrare
-
+	ceSumCC = Math.round(ceSumCC * 100) / 100; // Suma comision card
+	ceSumCO = Math.round(ceSumCO * 100) / 100; // Suma comision online
 
 	CCCVPAYSUM.ITEAMNT = ceSumI;
-	CCCVPAYSUM.SRVAMNT = ceSumC + ceSumCI + ceSumCA;
+	CCCVPAYSUM.SRVAMNT = ceSumC + ceSumCI + ceSumCA + ceSumCC + ceSumCO;
 
 	docID();
-	X.RUNSQL('update INST set CCCCOMZI = ' + CCCVPAYSUM.SRVAMNT + ' where INST =' + vID, null);
+	var qry ='update INST set CCCCOMZI = ' + CCCVPAYSUM.SRVAMNT + ' where INST =' + vID;
+	X.RUNSQL(qry, null);
 
 	if (INST.CCCPAYTYPE == 2 || INST.CCCPAYTYPE == 1)
-		CCCVPAYSUM.PAYAMNT = ceSumC + ceSumCI + ceSumCA;
+		CCCVPAYSUM.PAYAMNT = ceSumC + ceSumCI + ceSumCA + ceSumCC + ceSumCO;
 	if (INST.CCCPAYTYPE == 3) {
 		CCCVPAYSUM.PAYAMNT = ceSum;
 		CCCVPAYSUM.SETREADONLY('PAYAMNT', 1);
+	}
+
+	if (mopla)
+		INST.UTBL05 = mopla;
+
+	if (INST.UTBL05 == 100) // Plata Cash
+	{
+
+		if (INST.CCCYCARD == 1) {
+			INST.CCCCARD = CCCVPAYSUM.PAYAMNT;
+			INST.CCCNUM = null;
+		} else {
+			INST.CCCNUM = CCCVPAYSUM.PAYAMNT;
+			INST.CCCCARD = null;
+		}
+
 	}
 
 	if (INST.UTBL05 == 200) // Plata OP
@@ -714,8 +745,6 @@ function b(misum, mopla) {
 		CCCVPAYSUM.SETREADONLY('PAYAMNT', 1);
 	}
 
-	INST.UTBL05=mopla;
-
 	if (INST.UTBL05 == 300) {
 		//Plata online, suma transmisa pe web service; daca a fost transmisa, atat plateste, suprascriu propunerile de mai sus
 		//INST.CCCSUMATRANSMISA = 100;
@@ -729,6 +758,8 @@ function b(misum, mopla) {
 	CCCVPAYSUM.SUMAMNT = ceSum;
 	CCCVPAYSUM.DAYS = cateZile;
 
+	//X.RUNSQL('update INST set CCCGETCOM=0, CCCACTIUNE=0 where INST=' + vID, null);
+
 	return true;
 }
 
@@ -737,7 +768,8 @@ function ON_SFCCCVPAY_ACCEPT() {
 }
 
 function c(showNext, actiune, getcom) {
-	if (!showNext) dsRO(INSTLINES, 0);
+	if (showNext)
+		dsRO(INSTLINES, 0);
 
 	if (ceAchit == 0) {}
 	//X.EXCEPTION('Nu exista nimic de achitat. Anulati actiunea!');
@@ -751,7 +783,7 @@ function c(showNext, actiune, getcom) {
 		if (CCCVPAY.SODTYPE == 51) {
 			INSTLINES.LOCATE('INSTLINES', CCCVPAY.INSTLINES);
 			INSTLINES.CCCPAY = CCCVPAY.PRICE;
-			X.RUNSQL('update instlines set CCCPAY='+CCCVPAY.PRICE+' where inst='+vID+' and instlines='+CCCVPAY.INSTLINES, null);
+			//X.RUNSQL('update instlines set CCCPAY=' + CCCVPAY.PRICE + ' where inst=' + vID + ' and instlines=' + CCCVPAY.INSTLINES, null);
 			// Reproducere in doc retail - la salvare
 			//INSTLINES.CCCPAID = CCCVPAY.PRICE + INSTLINES.CCCPAID;
 		}
@@ -761,7 +793,7 @@ function c(showNext, actiune, getcom) {
 			INSTLINESS.LOCATE('INSTLINES', CCCVPAY.INSTLINES);
 			//INSTLINESS.LOCATE('MTRL',CCCVPAY.MTRL);
 			INSTLINESS.CCCPAY = CCCVPAY.PRICE;
-			X.RUNSQL('update instlines set CCCPAY='+CCCVPAY.PRICE+' where inst='+vID+' and instlines='+CCCVPAY.INSTLINES, null);
+			//X.RUNSQL('update instlines set CCCPAY=' + CCCVPAY.PRICE + ' where inst=' + vID + ' and instlines=' + CCCVPAY.INSTLINES, null);
 			//INSTLINESS.CCCQTY = CCCVPAY.CCCQTY;
 
 			DsCod = X.GETSQLDATASET('select code from mtrl where mtrl=' + INSTLINESS.MTRL, null);
@@ -793,6 +825,119 @@ function c(showNext, actiune, getcom) {
 
 	X.EXEC('button:Save');
 
+	docID();
+	var sqlTran = 'SET TRANSACTION ISOLATION LEVEL SERIALIZABLE; BEGIN TRY BEGIN TRAN ';
+	for (var i = 0; i < INST.FIELDCOUNT - 1; i++) {
+		if (INST.FIELDNAME(i) != 'INST' && INST.FIELDS(i) && INST.FIELDNAME(i).substring(0, 2) != 'X_' && INST.FIELDNAME(i).substring(0, 1) != 'v') {
+			var t = INST.FIELDTYPE(INST.FIELDNAME(i)),
+			zz;
+			if (t == 1 || t == 4 || t == 16 || t == 11) {
+				zz = "'" + INST.FIELDS(i) + "'";
+			} else if (t == 2 || t == 3 || t == 6) {
+				zz = INST.FIELDS(i);
+			}
+
+			try {
+				X.RUNSQL('update inst set ' + INST.FIELDNAME(i) + '=' + zz + ' where inst=' + vID + ';', null);
+			} catch (e) {}
+		}
+	}
+
+	X.RUNSQL("update inst set BLCKDATE='" + X.FORMATDATE('yyyymmdd', INST.BLCKDATE) + "' where inst=" + vID + ";", null);
+	//X.WARNING("update inst set BLCKDATE='"+ X.FORMATDATE('yyyymmdd', INST.BLCKDATE) + "' where inst="+vID+";");
+
+	sqlTran += 'delete from instlines where inst=' + vID + ';';
+
+	var a1,
+	a2,
+	a3;
+	INSTLINES.DISABLECONTROLS;
+	INSTLINESS.DISABLECONTROLS;
+	INSTLINES.FIRST;
+	while (!INSTLINES.EOF) {
+		if (INSTLINES.ISNULL('CCCQTY') == 1) {
+			a1 = 0;
+		} else {
+			a1 = INSTLINES.CCCQTY;
+		}
+		if (INSTLINES.ISNULL('CCCPRICE') == 1) {
+			a2 = 0;
+		} else {
+			a2 = INSTLINES.CCCPRICE;
+		}
+		if (INSTLINES.ISNULL('CCCPAY') == 1) {
+			a3 = 0;
+		} else {
+			a3 = INSTLINES.CCCPAY;
+		}
+
+		sqlTran += 'insert into instlines (company, inst, instlines, linenum, mtrl, sodtype, qty, price, ' +
+		'cccqty, cccprice, cccpay, fromdate, finaldate, bailtype) values (' +
+		X.SYS.COMPANY + ',' +
+		vID + ',' +
+		INSTLINES.INSTLINES + ',' +
+		INSTLINES.LINENUM + ',' +
+		INSTLINES.MTRL + ',' +
+		INSTLINES.SODTYPE + ',' +
+		INSTLINES.QTY + ',' +
+		INSTLINES.PRICE + ',' +
+		a1 + ',' +
+		a2 + ',' +
+		a3 + ',' +
+		"'" + X.FORMATDATE('yyyymmdd', INSTLINES.FROMDATE) + "'," +
+		"'" + X.FORMATDATE('yyyymmdd', INSTLINES.FINALDATE) + "'," +
+		INSTLINES.BAILTYPE +
+		');';
+		INSTLINES.NEXT;
+	}
+
+	INSTLINESS.FIRST;
+	while (!INSTLINESS.EOF) {
+		if (INSTLINESS.ISNULL('CCCQTY') == 1) {
+			a1 = 0;
+		} else {
+			a1 = INSTLINESS.CCCQTY;
+		}
+		if (INSTLINESS.ISNULL('CCCPRICE') == 1) {
+			a2 = 0;
+		} else {
+			a2 = INSTLINESS.CCCPRICE;
+		}
+		if (INSTLINESS.ISNULL('CCCPAY') == 1) {
+			a3 = 0;
+		} else {
+			a3 = INSTLINESS.CCCPAY;
+		}
+
+		sqlTran += 'insert into instlines (company, inst, instlines, linenum, mtrl, sodtype, ' +
+		'qty, price, cccqty, cccprice, cccpay, fromdate, finaldate, bailtype) values (' +
+		X.SYS.COMPANY + ',' +
+		vID + ',' +
+		INSTLINESS.INSTLINES + ',' +
+		INSTLINESS.LINENUM + ',' +
+		INSTLINESS.MTRL + ',' +
+		INSTLINESS.SODTYPE + ',' +
+		INSTLINESS.QTY + ',' +
+		INSTLINESS.PRICE + ',' +
+		a1 + ',' +
+		a2 + ',' +
+		a3 + ',' +
+		"'" + X.FORMATDATE('yyyymmdd', INSTLINESS.FROMDATE) + "'," +
+		"'" + X.FORMATDATE('yyyymmdd', INSTLINESS.FINALDATE) + "'," +
+		INSTLINESS.BAILTYPE +
+		');';
+		INSTLINESS.NEXT;
+	}
+
+	INSTLINES.ENABLECONTROLS;
+	INSTLINESS.ENABLECONTROLS;
+
+	sqlTran += 'COMMIT TRAN END TRY BEGIN CATCH IF @@TRANCOUNT > 0 ROLLBACK TRAN; THROW; END CATCH';
+
+	//X.EXCEPTION(sqlTran);
+	//X.WARNING(sqlTran);
+	X.RUNSQL(sqlTran, null);
+
 	if (INST.UTBL05 == 100) {
 		DsSeries = X.GETSQLDATASET('select top 1 cccseriesch from cccacomm where branch=' + X.SYS.BRANCH + ' order by fromdate desc', null);
 		ceSerie = DsSeries.cccseriesch;
@@ -810,7 +955,7 @@ function c(showNext, actiune, getcom) {
 		//daca in dialog cu site pe ramura prelungire sau lichidare
 		//&& INST.CCCGETCOM == 2
 		//INST.CCCSUMATRANSMISA
-		debugger;
+		//debugger;
 
 		var id = -1;
 		if (actiune && getcom == 2) {
@@ -827,28 +972,28 @@ function c(showNext, actiune, getcom) {
 
 				var la = r.FindTable('ITELINES');
 
-				var DsArt = X.GETSQLDATASET('select mtrl, qty, cccqty, cccpay, cccprice, instlines from instlines where sodtype=51 and isnull(cccpay,0)<>0 and inst='+vID,null);
+				var DsArt = X.GETSQLDATASET('select mtrl, qty, cccqty, cccpay, cccprice, instlines from instlines where sodtype=51 and isnull(cccpay,0)<>0 and inst=' + vID, null);
 
-				var DsSrv = X.GETSQLDATASET('select mtrl, qty, cccqty, cccpay, cccprice, instlines from instlines where sodtype=52 and isnull(cccpay,0)<>0 and inst='+vID,null);
+				var DsSrv = X.GETSQLDATASET('select mtrl, qty, cccqty, cccpay, cccprice, instlines from instlines where sodtype=52 and isnull(cccpay,0)<>0 and inst=' + vID, null);
 
 				DsArt.FIRST;
 				if (DsArt.RECORDCOUNT) {
 					while (!DsArt.EOF) {
-					la.APPEND;
-					la.MTRL = DsArt.mtrl;
-					la.QTY1 = DsArt.qty;
-					la.PRICE = DsArt.cccpay;
-					la.MTRLINESS = DsArt.instlines;
-					/*
-					if (INSTLINES.LOCATE('INSTLINES', DsArt.instlines) == 1) {
+						la.APPEND;
+						la.MTRL = DsArt.mtrl;
+						la.QTY1 = DsArt.qty;
+						la.PRICE = DsArt.cccpay;
+						la.MTRLINESS = DsArt.instlines;
+						/*
+						if (INSTLINES.LOCATE('INSTLINES', DsArt.instlines) == 1) {
 						//INSTLINES.CCCPAID = DsArt.cccpay;
 						X.RUNSQL('update instlines set CCCPAID='+DsArt.cccpay+' where inst='+vID+' and instlines='+DsArt.instlines, null);
-					}
-					*/
-					la.POST;
+						}
+						 */
+						la.POST;
 
-					DsArt.NEXT;
-				}
+						DsArt.NEXT;
+					}
 				}
 
 				var ls = r.FindTable('SRVLINES');
@@ -856,21 +1001,21 @@ function c(showNext, actiune, getcom) {
 				DsSrv.FIRST;
 				if (DsSrv.RECORDCOUNT) {
 					while (!DsSrv.EOF) {
-					ls.APPEND;
-					ls.MTRL = DsSrv.mtrl;
-					ls.QTY1 = DsSrv.cccqty;
-					ls.PRICE = DsSrv.cccprice;
-					ls.MTRLINESS = DsSrv.instlines;
-					/*
-					if (INSTLINESS.LOCATE('INSTLINES', DsSrv.instlines) == 1) {
+						ls.APPEND;
+						ls.MTRL = DsSrv.mtrl;
+						ls.QTY1 = DsSrv.cccqty;
+						ls.PRICE = DsSrv.cccprice;
+						ls.MTRLINESS = DsSrv.instlines;
+						/*
+						if (INSTLINESS.LOCATE('INSTLINES', DsSrv.instlines) == 1) {
 						//INSTLINESS.CCCPAID = DsSrv.cccprice;
 						X.RUNSQL('update instlines set CCCPAID='+DsSrv.cccpay+' where inst='+vID+' and instlines='+DsSrv.instlines, null);
-					}
-					*/
-					ls.POST;
+						}
+						 */
+						ls.POST;
 
-					DsSrv.NEXT;
-				}
+						DsSrv.NEXT;
+					}
 				}
 
 				la.APPEND;
@@ -886,25 +1031,24 @@ function c(showNext, actiune, getcom) {
 
 				id = r.DBPOST;
 
-
-
 				if (!id) {
 					X.EXCEPTION('Nu s-a putut opera incasarea.');
 				}
 			} catch (err) {
 				X.WARNING(err.message);
-			} finally {
+			}
+			finally {
 				r.FREE;
 				r = null;
 
 				docID();
-				var DsDate = X.GETSQLDATASET('select llineval, mtrliness from mtrlines where findoc='+id,null);
+				var DsDate = X.GETSQLDATASET('select llineval, mtrliness from mtrlines where findoc=' + id, null);
 				DsDate.FIRST;
 				while (!DsDate.Eof) {
-					DsActual = X.GETSQLDATASET('select cccpaid from instlines where instlines='+DsDate.mtrliness+' and inst='+vID,null);
+					DsActual = X.GETSQLDATASET('select cccpaid from instlines where instlines=' + DsDate.mtrliness + ' and inst=' + vID, null);
 					var cePaid = DsActual.cccpaid;
-					var cePay = DsActual.cccpaid+DsDate.llineval;
-					X.RUNSQL('update instlines set cccpaid='+cePay+' where instlines='+DsDate.mtrliness+' and inst='+vID,null);
+					var cePay = DsActual.cccpaid + DsDate.llineval;
+					X.RUNSQL('update instlines set cccpaid=' + cePay + ' where instlines=' + DsDate.mtrliness + ' and inst=' + vID, null);
 					DsDate.NEXT;
 				}
 			}
@@ -949,6 +1093,9 @@ function c(showNext, actiune, getcom) {
 
 	if (!showNext)
 		gridRO(INSTLINES, 1);
+
+	X.RUNSQL('update INST set CCCGETCOM=0, CCCCOMZI=0, CCCSUMATRANSMISA=0, CCCCOMNETOPIA=0, CCCACTIUNE=0 where INST=' + vID, null);
+
 	X.EXEC('button:Save');
 }
 
@@ -1087,6 +1234,7 @@ function ON_INST_INSTTYPE() {
 }
 
 function ON_INST_CCCCNTRTYPE() {
+	//debugger;
 	if (INST.CCCINSTS > 0) {}
 	else // doar acte noi din import AmanetOnline
 	{
@@ -1103,30 +1251,14 @@ function ON_INST_UTBL01() //Durata contract
 	if (DsTipDurata.type == 1)
 		INST.BOOL03 = 0;
 	else
-		INST.BOOL03 = null;
+		INST.BOOL03 = 1;
 
 	if (INST.UTBL01 > 0 && INST.TRDR > 0 && INST.INSTTYPE > 0)
 		formare_nume();
-	/*
-	dataCntr1 = X.FORMATDATE('yymmdd',INST.WDATEFROM);
-	dataCntr2 = X.FORMATDATE('yymmdd',INST.WDATETO);
-	dataGr1 = X.FORMATDATE('yymmdd',INST.GDATEFROM);
-	dataGr2 = X.FORMATDATE('yymmdd',INST.GDATETO);
-	dataComm1 = X.FORMATDATE('yymmdd',INSTLINESS.FROMDATE);
-	dataComm2 = X.FORMATDATE('yymmdd',INSTLINESS.FINALDATE);*/
-
-	// Aplicare data inceput contract - doar pt. Contracte, nu si acte aditionale
-	/// eliminat 27.11.2019; afecteaza data prelungire contract (suprascrie data rezultata din functia date_prelungire)
-	/*if (INST.CCCCNTRTYPE==1) // chiar daca e act, il vede tot 1..., camp completat dupa momentul corect
-{
-	INST.WDATEFROM = X.SYS.LOGINDATE;
-	}*/
 
 	// Aplicare data finala contract
 	dataCntr1 = X.FORMATDATE('yymmdd', INST.WDATEFROM);
-	//DsDurata = X.GETSQLDATASET('select num01-1 as num01 from utbl01 where sodtype=41 and utbl01='+INST.UTBL01+' and company='+X.SYS.COMPANY,null);
 	ceDurata = INST.UTBL01 - 1;
-	//DsData = X.GETSQLDATASET("select dateadd(d,"+DsDurata.num01+",'"+dataCntr1+"') as data",null);
 	DsData = X.GETSQLDATASET("select dateadd(d," + ceDurata + ",'" + dataCntr1 + "') as data", null);
 	dataCntr2 = DsData.data;
 	INST.WDATETO = dataCntr2;
@@ -1166,6 +1298,13 @@ function ON_INST_UTBL01() //Durata contract
 		}
 		INSTLINES.NEXT;
 	}
+
+	/*
+	X.WARNING('UTBL01:'+X.FORMATDATE('dd.mm.yyyy', INST.WDATEFROM));
+	X.WARNING('UTBL01:'+X.FORMATDATE('dd.mm.yyyy', INST.WDATETO));
+	X.WARNING('UTBL01:'+X.FORMATDATE('dd.mm.yyyy', INST.GDATEFROM));
+	X.WARNING('UTBL01:'+X.FORMATDATE('dd.mm.yyyy', INST.GDATETO));
+	 */
 
 	// Recalculare comision
 	/*INSTLINESS.FIRST;
@@ -1836,6 +1975,9 @@ function calcul_comision() {
 
 	if (DsCateg.mtrcategory == 101)
 		INSTLINESS.CCCQTY = -1;
+
+	if (DsCateg.mtrcategory == 111 || DsCateg.mtrcategory == 112) // Comision online / card
+		INSTLINESS.CCCQTY = 1;
 }
 
 function calcul_pret_comision() {
@@ -1928,7 +2070,7 @@ function calcul_pret_comision() {
 			INSTLINES.CCCCOMPRC = ceComm;
 			INSTLINESS.CCCCOMPRC = ceComm;
 		}
-
+		// Comision adminstrare
 		if (DsCateg.mtrcategory == 108) {
 			ceComm = 0;
 			dataCntr = X.FORMATDATE('yyyymmdd', INST.FROMDATE);
@@ -1943,8 +2085,49 @@ function calcul_pret_comision() {
 			INSTLINESS.CCCPRICE = ceComm;
 		}
 
+		// Discounturi
 		if (DsCateg.mtrcategory == 101) {
 			INSTLINESS.CCCPRICE = (-1) * Math.round(ceVal * 100 / INSTLINESS.CCCQTY) / 100;
+		}
+
+		if (DsCateg.mtrcategory == 111) // Comision card
+		{
+			ceComm = 0;
+			dataCntr = X.FORMATDATE('yyyymmdd', INST.FROMDATE);
+			dataCntr = String.fromCharCode(39) + dataCntr + String.fromCharCode(39);
+
+			if (INST.CCCACOMM > 0)
+				DsCommCard = X.GETSQLDATASET('select commcard, commonline from cccacomm where cccacomm=' + INST.CCCACOMM, null);
+			else
+				DsCommCard = X.GETSQLDATASET('select top 1 commcard, commonline from cccacomm where branch=' + INST.BRANCH + ' and convert(varchar(10),fromdate,112)<=' + dataCntr + ' order by fromdate desc', null);
+
+			if (INST.UTBL05 == 100)
+				ceComm = DsCommCard.commcard;
+			if (INST.UTBL05 == 300)
+				ceComm = DsCommCard.commonline;
+
+			// Valoare la care se aplica, cu exludere valoare curenta comision card/online
+			if (INST.CCCPAYTYPE == 2)
+				ceVal = INST.CCCSRVSUM - INSTLINESS.CCCPRICE;
+			if (INST.CCCPAYTYPE == 3)
+				ceVal = INST.CCCSUMAMNT - INSTLINESS.CCCPRICE;
+
+			//ceVal1 = Math.round((ceComm/100)*ceVal*100)/100;
+			//X.WARNING(ceVal1);
+			//INSTLINESS.CCCPRICE = Math.round(ceVal1*100/(1-ceComm/100))/100;
+			INSTLINESS.CCCPRICE = Math.round(ceComm * ceVal * 100 / (100 - ceComm)) / 100;
+
+			if (INST.CCCCARD > 0) {
+				ceVal = INST.CCCCARD;
+				INSTLINESS.CCCPRICE = Math.round(ceComm * ceVal) / 100;
+			}
+
+		}
+
+		if (DsCateg.mtrcategory == 111) // Comision online
+		{
+			if (INST.CCCCOMNETOPIA)
+				INSTLINESS.CCCPRICE = INST.CCCCOMNETOPIA;
 		}
 
 		INSTLINESS.PRICE = Math.round(INSTLINESS.CCCPRICE * INSTLINESS.CCCQTY * (1 - INSTLINESS.CCCDISCPRC / 100) * 100) / 100;
@@ -2059,10 +2242,14 @@ function validare_aplicare_com() {
 	sumCma = 0;
 	sumCmad = 0;
 	sumDsc = 0;
+	sumCmc = 0;
+	sumCmo = 0;
 	INSTLINESS.FIRST;
 	while (!INSTLINESS.Eof) {
 		DsCateg = X.GETSQLDATASET('select mtrcategory from mtrl where mtrl=' + INSTLINESS.MTRL, null);
 
+		// 0 = se aplica
+		// 1 = se recalculeaza
 		if (DsCateg.mtrcategory == 101) // Discounturi
 		{
 			sumDsc = 0;
@@ -2090,10 +2277,15 @@ function validare_aplicare_com() {
 			//sumCmad = sumCmad + 1;
 		}
 
+		if (DsCateg.mtrcategory == 111 || DsCateg.mtrcategory == 112) // Comision online/card
+		{
+			sumCmc += 1;
+			sumCmo += 1;
+		}
 		INSTLINESS.NEXT;
 	}
 
-	if (sumCom > 0 || sumCmi > 0 || sumCma > 0 || sumDsc > 0 || sumCmad > 0) {
+	if (sumCom > 0 || sumCmi > 0 || sumCma > 0 || sumDsc > 0 || sumCmad > 0 || sumCmc > 0 || sumCmo > 0) {
 		INSTLINESS.FIRST;
 		while (!INSTLINESS.Eof) {
 			DsCateg = X.GETSQLDATASET('select mtrcategory from mtrl where mtrl=' + INSTLINESS.MTRL, null);
@@ -2174,6 +2366,16 @@ function validare_aplicare_com() {
 				}
 			}
 
+			if (DsCateg.mtrcategory == 111 || DsCateg.mtrcategory == 112) // Comision online / card
+			{
+				if (INSTLINESS.CCCPAID != 0)
+					X.EXCEPTION('Modificare nepermisa, exista tranzactii!');
+
+				if (INSTLINESS.CCCPAID == 0 || INSTLINESS.CCCPAID == null || INSTLINESS.CCCPAID == '') {
+					INSTLINESS.DELETE;
+					INSTLINESS.PRIOR;
+				}
+			}
 			INSTLINESS.NEXT;
 		}
 	}
@@ -2209,6 +2411,17 @@ function validare_aplicare_com() {
 			if (INST.CCCCARDUSE > 0)
 				aplicare_discount_card();
 		}
+	}
+
+	if (sumCmc == 0) {
+		if (INST.UTBL05 == 100 && INST.CCCYCARD == 1)
+			aplicare_comision_card();
+	}
+
+	if (sumCmo == 0) {
+		//debugger;
+		if (INST.UTBL05 == 300 && INST.CCCCOMNETOPIA)
+			aplicare_comision_online();
 	}
 
 	vdel = 0;
@@ -2517,6 +2730,7 @@ function prelungire_contract(showNext) {
 		if (showNext) {
 			X.EXEC('XCMD:INST[AUTOEXEC=2,FORM=S1 - Contracte amanet,FORCEVALUES=CCCCNTRTYPE:2?BRANCH:' + INST.BRANCH + '?INSTTYPE:' + INST.INSTTYPE + '?TRDR:' + INST.TRDR + '?CCCPRSN:' + cePrsn + '?CCCPRSN1:' + cePrsn1 + '?CCCPRSN2:' + cePrsn2 + '?UTBL01:' + INST.UTBL01 + '?CCCMTRGROUP:+' + INST.CCCMTRGROUP + '?CCCBRATE:' + INST.CCCBRATE + '?BOOL01:1?BOOL04:' + INST.BOOL04 + '?CCCCOMSPEC:' + INST.CCCCOMSPEC + '?CCCAPR1:' + INST.CCCAPR1 + '?CCCAPR:' + INST.CCCAPR + '?CCCINST:' + INST.CCCINST + '?CCCINSTS:' + INST.INST + '?CCCCNTRTYPE:2?UTBL04:3100?COMMENTS:]');
 		} else {
+			//debugger;
 			var myObj = X.CreateObj('INST;S1 - Contracte amanet');
 			try {
 				myObj.DBINSERT;
@@ -2536,6 +2750,7 @@ function prelungire_contract(showNext) {
 					TblFin.CCCPRSN2 = cePrsn2;
 				if (INST.UTBL01)
 					TblFin.UTBL01 = INST.UTBL01;
+				//X.WARNING('2669:' + X.FORMATDATE('dd.mm.yyyy',INST.WDATETO));
 				if (INST.CCCMTRGROUP)
 					TblFin.CCCMTRGROUP = INST.CCCMTRGROUP;
 				if (INST.CCCBRATE)
@@ -2554,7 +2769,10 @@ function prelungire_contract(showNext) {
 				//debugger;
 				if (INST.INST)
 					TblFin.CCCINSTS = INST.INST;
+				//TblFin.BLCKDATE = INST.BLCKDATE;
 				TblFin.CCCCNTRTYPE = 2;
+				TblFin.UTBL03 = 1;
+				TblFin.BOOL03 = 1;
 				TblFin.UTBL04 = 3100;
 				//debugger;
 				var id = myObj.DBPOST;
@@ -2580,6 +2798,7 @@ function prelungire_contract(showNext) {
 }
 
 function date_prelungire() {
+	//debugger;
 	// Codificare Act Aditional
 	DsAA = X.GETSQLDATASET('select inst from inst where ccccntrtype=2 and cccinst=' + INST.CCCINST, null);
 	DsCC = X.GETSQLDATASET('select code from inst where inst=' + INST.CCCINST, null);
@@ -2592,36 +2811,27 @@ function date_prelungire() {
 	ceCod = ceCod.replace('C', 'A') + '/' + ceNum;
 	INST.CODE = ceCod;
 
-	/*ceData = X.FORMATDATE('yymmdd',INST.WDATEFROM);
-	DsData = X.GETSQLDATASET("select dateadd(d,1,'"+ceData+"') as data",null);*/
+	//X.WARNING('INST.CCCINSTS:'+INST.CCCINSTS);
 
-	DsDif = X.GETSQLDATASET('select datediff(d,gdateto,GetDate()) as dif from inst where inst=' + INST.CCCINSTS, null);
+	var DsDif = X.GETSQLDATASET('select datediff(d,gdateto,GetDate()) as dif from inst where inst=' + INST.CCCINSTS, null);
 
-	if (DsDif.dif < 0)
-		DsData = X.GETSQLDATASET('select dateadd(d,1,min(finaldate)) as data from instlines where inst=' + INST.CCCINSTS, null);
-	else
-		DsData = X.GETSQLDATASET('select dateadd(d,1,max(finaldate)) as data from instlines where inst=' + INST.CCCINSTS, null);
+	if (DsDif.dif < 0) {
+		var q1 = "select replace(convert(varchar, dateadd(d,1,min(finaldate)), 23), '', '') as xyz from instlines where sodtype=52 and inst=" + INST.CCCINSTS;
+		//X.WARNING(q1);
+		var DsData = X.GETSQLDATASET(q1, null);
+	} else {
+		var q = "select replace(convert(varchar, dateadd(d,1,max(finaldate)), 23), '', '') as xyz from instlines where sodtype=52 and inst=" + INST.CCCINSTS;
+		//X.WARNING(q);
+		var DsData = X.GETSQLDATASET(q, null);
+	}
 
-	//DsData = X.GETSQLDATASET('select dateadd(d,1,blckdate) as data from inst where inst='+INST.CCCINSTS,null);
-	ceData = DsData.data;
+	var ceData = DsData.xyz;
 	//X.WARNING(ceData);
 	INST.WDATEFROM = ceData;
-	//X.WARNING('1'+INST.WDATEFROM);
-
-	/*
-	DsData = X.GETSQLDATASET('select dateadd(d,1,max(finaldate)) as data from instlines where inst='+INST.CCCINST,null);
-	//ceData = X.FORMATDATE('yymmdd',INST.WDATEFROM);
-	//DsData = X.GETSQLDATASET("select dateadd(d,1,'"+ceData+"') as data",null);
-	ceData = DsData.data;
-	INST.WDATEFROM = ceData;*/
-	//X.WARNING('2'+INST.WDATEFROM);
+	//X.WARNING(INST.WDATEFROM);
 
 	ceDurata = INST.UTBL01;
-	//INST.UTBL01 = 30;
 	INST.UTBL01 = ceDurata;
-
-	//X.WARNING('3'+INST.WDATEFROM);
-
 
 	INST.CCCCNTRTYPE = 2;
 
@@ -2753,7 +2963,9 @@ function plata_imprumut() {
 
 function distribuire_incasare() {
 	CCCVPAYSUM.NEXT;
-	zileInit = cateZile;
+	var zileInit = cateZile,
+	ceSumCC = 0,
+	ceSumCO = INST.CCCCOMNETOPIA ? INST.CCCCOMNETOPIA : 0;
 	//zileInit = CCCVPAYSUM.DAYS;
 
 	//X.EXCEPTION(CCCVPAYSUM.PAYAMNT);
@@ -2777,7 +2989,7 @@ function distribuire_incasare() {
 		X.EXCEPTION('Suma necorespunzatoare de incasat!');
 
 	if (CCCVPAYSUM.PAYAMNT < ceSum || CCCVPAYSUM.PAYAMNT == ceSum) {
-		ceSumCom = ceSumC + ceSumCI + ceSumCA;
+		ceSumCom = ceSumC + ceSumCI + ceSumCA + ceSumCC + ceSumCO;
 		// Achitare comision integral la zi
 		//if (CCCVPAYSUM.PAYAMNT > ceSumCom)
 		if (CCCVPAYSUM.PAYAMNT > ceSumCom || CCCVPAYSUM.PAYAMNT == ceSumCom) {
@@ -2821,6 +3033,33 @@ function distribuire_incasare() {
 						CCCVPAY.VALUE = Math.round(CCCVPAY.CCCQTY * CCCVPAY.CCCPRICE * 100) / 100;
 						CCCVPAY.TOPAY = CCCVPAY.VALUE - CCCVPAY.PAID;
 						CCCVPAY.PRICE = Math.round(CCCVPAY.CCCQTY * CCCVPAY.CCCPRICE * 100) / 100 - CCCVPAY.PAID;
+						// Recalculare comision card, ca urmare a modificarii sumei incasate prin card
+						if (DsCod.code == 'CMC') {
+							INSTLINESS.LOCATE('INSTLINES', CCCVPAY.INSTLINES);
+							if (INST.CCCCARD > 0)
+								calcul_pret_comision();
+							if (INST.CCCCARD == 0) {
+								INSTLINESS.CCCPRICE = 0;
+								INSTLINESS.PRICE = 0;
+							}
+							CCCVPAY.VALUE = INSTLINESS.PRICE;
+							CCCVPAY.CCCPRICE = INSTLINESS.PRICE;
+							CCCVPAY.TOPAY = INSTLINESS.PRICE;
+							CCCVPAY.PRICE = INSTLINESS.PRICE;
+
+							ceSumCC = INSTLINESS.PRICE;
+							//X.WARNING(ceSumCC);
+
+							ceOriginal = CCCVPAYSUM.SRVAMNT;
+
+							CCCVPAYSUM.SRVAMNT = INST.CCCSRVSUM;
+
+							if (INST.CCCPAYTYPE == 2 && ceOriginal == CCCVPAYSUM.PAYAMNT)
+								CCCVPAYSUM.PAYAMNT = INST.CCCSRVSUM;
+
+							if (INST.CCCPAYTYPE == 3)
+								CCCVPAYSUM.PAYAMNT = INST.CCCSUMAMNT;
+						}
 					}
 
 					ceCalc = ceCalc + CCCVPAY.PRICE;
@@ -2885,6 +3124,8 @@ function distribuire_incasare() {
 
 		}
 
+		//debugger;
+
 		// Achitare comision partial
 		if (CCCVPAYSUM.PAYAMNT < ceSumCI)
 			X.EXCEPTION('Suma nu acopera comisionul de intarziere!');
@@ -2908,7 +3149,7 @@ function distribuire_incasare() {
 		if (CCCVPAYSUM.PAYAMNT < ceSumCom) {
 			//X.WARNING(2);
 
-			ceComIA = ceSumCI + ceSumCA;
+			ceComIA = ceSumCI + ceSumCA + ceSumCC;
 			CCCVPAYSUM.DAYS = zileInit;
 			ceDif = CCCVPAYSUM.PAYAMNT - ceComIA;
 			cateDays = Math.floor((ceDif * CCCVPAYSUM.DAYS) / ceSumC);
@@ -2940,7 +3181,7 @@ function distribuire_incasare() {
 
 						if (DsCateg.mtrcategory == 101 && CCCVPAY.CCCQTY != 0) // Discounturi - nu se acorda la comision partial
 						{
-							X.EXCEPTION('Comision partial, nu se acorda discounturi! ----> In lucru.....');
+							X.EXCEPTION('Comision partial, nu se acorda discounturi!');
 							/*
 							var ans;
 							ans = X.ASK('Comision partial','Nu se acorda '+DsCod.name+'! Continuati?');
@@ -2965,6 +3206,7 @@ function distribuire_incasare() {
 
 				if (ceDistrib > 0) // Recalculare distribuire dupa eliminare discounturi
 				{
+					//debugger;
 					X.WARNING('Comision partial, nu se acorda discounturi!');
 					X.CLOSESUBFORM('SFCCCVPAY');
 
@@ -2981,6 +3223,7 @@ function distribuire_incasare() {
 					}
 
 					//distribuire_incasare();
+					//debugger;
 					X.OPENSUBFORM('SFCCCVPAY');
 				}
 
@@ -2994,17 +3237,17 @@ function distribuire_incasare() {
 
 	/*
 	if (INST.CCCGETCOM == 2) {
-		//dupa cod 'CMO', mtrl=123001
-		INSTLINESS.APPEND;
-		INSTLINESS.MTRL = X.SQL("select mtrl from mtrl where code='CMO'", null);
-		INSTLINESS.CCCQTY = 1;
-		INSTLINESS.CCCPRICE = INST.CCCCOMNETOPIA;
-		INSTLINESS.PRICE = INSTLINESS.CCCQTY * INST.CCCCOMNETOPIA;
-		INSTLINESS.CCCPAY = INST.CCCCOMNETOPIA;
-		INSTLINESS.CCCPAID = INST.CCCCOMNETOPIA;
-		INSTLINESS.POST;
+	//dupa cod 'CMO', mtrl=123001
+	INSTLINESS.APPEND;
+	INSTLINESS.MTRL = X.SQL("select mtrl from mtrl where code='CMO'", null);
+	INSTLINESS.CCCQTY = 1;
+	INSTLINESS.CCCPRICE = INST.CCCCOMNETOPIA;
+	INSTLINESS.PRICE = INSTLINESS.CCCQTY * INST.CCCCOMNETOPIA;
+	INSTLINESS.CCCPAY = INST.CCCCOMNETOPIA;
+	INSTLINESS.CCCPAID = INST.CCCCOMNETOPIA;
+	INSTLINESS.POST;
 	}
-	*/
+	 */
 }
 
 function validare_use_promo() {
@@ -3948,11 +4191,32 @@ function xx() {
 	})();
 }
 
+function initWeb(getcom, actiune, sumatransm, mopla) {
+	if (getcom)
+		X.WARNING('initWeb('+getcom+','+ actiune+','+ sumatransm+','+mopla+')');
+	if (getcom) {
+		sumatransm += INST.CCCCOMNETOPIA;
+		if (actiune) {
+			if (getcom == 1) {
+				X.WARNING('calcul comisioane');
+				if (!ab(actiune, sumatransm)) {
+					//ceva nu a mers bine, fa ceva cu aceasta info
+				}
+			} else if (getcom == 2) {
+				X.WARNING('prelungire, lichidare');
+				abcd(actiune, sumatransm, getcom, mopla);
+			}
+		}
+	}
+}
+
 function ab(actiune, sumatr) {
 	var ret1 = false,
 	ret2 = false;
 	ret1 = a(false, actiune);
-	ret2 = b(sumatr); //show tabela calcule
+	X.WARNING('ab:a(actiune='+actiune+'):'+ret1);
+	ret2 = b(actiune, sumatr, 0); //show tabela calcule
+	X.WARNING('ab:b(actiune='+actiune+', sumatr='+sumatr+'):'+ret1);
 
 	if (ret1 && ret2) {
 		return true;
@@ -3963,9 +4227,20 @@ function ab(actiune, sumatr) {
 
 function abcd(actiune, sumatransm, getcom, mopla) {
 	a(false, actiune); //2=Prelungire, 3=Lichidare
-	b(sumatransm, mopla); //show tabela calcule
+	b(actiune, sumatransm, mopla); //show tabela calcule
 	//9600
 	c(false, actiune, getcom); //accept calcule,prelungeste
+}
+
+function aplicare_comision_online() {
+	INSTLINESS.APPEND;
+	ceCod = 'CMO';
+	DsSrv = X.GETSQLDATASET("select mtrl from mtrl where sodtype=52 and company=" + X.SYS.COMPANY + " and code='" + ceCod + "'", null);
+	INSTLINESS.MTRL = DsSrv.mtrl;
+	INSTLINESS.QTY = 1;
+
+	INSTLINESS.FROMDATE = INST.WDATETO;
+	INSTLINESS.FINALDATE = INST.WDATETO;
 }
 
 /*
@@ -3996,7 +4271,7 @@ select base64, inst, orig, (select trdr from inst where inst={inst}) trdr from C
 where inst={inst}
 
 //ALTER TABLE INST ADD CCCDATAPLATABTN DATETIME null, CCCSUMATRANSMISA FLOAT null, CCCCOMNETOPIA FLOAT null,
-CCCGETCOM SMALLINT null, CCCACTIUNE SMALLINT null, CCCCOMZI FLOAT null
+CCCGETCOM SMALLINT null, CCCACTIUNE SMALLINT null, CCCCOMZI FLOAT null, CCCCARD FLOAT null, CCCNUM FLOAT null, CCCYCARD SMALLINT null
 
 select
 CCCDATAPLATABTN,
